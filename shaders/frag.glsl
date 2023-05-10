@@ -8,48 +8,40 @@ uniform float iDeltaTime;
 
 out vec4 out_color;
 
+const float epsilon = 0.002f;
+
 float smin(float a, float b, float k) {
     float h = clamp(0.5 + 0.5*(a-b)/k, 0.0, 1.0);
     return mix(a, b, h) - k*h*(1.0-h);
 }
 
-float sd_mandelbulb(vec3 p) {
-    mat3x3 rotMatrix = mat3x3(
-        vec3(cos(iTime * 0.5), -sin(iTime * 0.5), 0.0),
-        vec3(sin(iTime * 0.5), cos(iTime * 0.5), 0.0),
-        vec3(0.0, 0.0, 1.0)
-    );
-
-    mat3x3 rotMatrix2 = mat3x3(
-        vec3(cos(iTime * 0.5), 0.0, -sin(iTime * 0.5)),
-        vec3(0.0, 1.0, 0.0),
-        vec3(sin(iTime * 0.5), 0.0, cos(iTime * 0.5))
-    );
-
-    vec3 v1 = rotMatrix * rotMatrix2 * vec3(1.0, 1.0, 1.0);
-    vec3 v2 = rotMatrix * rotMatrix2 * vec3(-1.0, 1.0, -1.0);
-    vec3 v3 = rotMatrix * rotMatrix2 * vec3(1.0, -1.0, -1.0);
-    vec3 v4 = rotMatrix * rotMatrix2 * vec3(-1.0, -1.0, 1.0);
-
-    vec3 c;
-    int counter = 0;
-    int MAX_ITERATIONS = 10;
-    float SCALE = 2.0;
-    float distToVertex, d;
-    while(counter < MAX_ITERATIONS)
+float mandelbulb_power = 8.;
+const int mandelbulb_iter_num = 20;
+float mandelbulb_sdf(vec3 pos) {
+    vec3 z = pos;
+    float dr = 1.0;
+    float r = 0.0;
+    for (int i = 0; i < mandelbulb_iter_num ; i++)
     {
-        c = v1;
-        distToVertex = length(p - v1);
+        r = length(z);
+        if (r>3.) break;
 
-        d = length(p - v2); if(d < distToVertex) {c = v2; distToVertex = d;}
-        d = length(p - v3); if(d < distToVertex) {c = v3; distToVertex = d;}
-        d = length(p - v4); if(d < distToVertex) {c = v4; distToVertex = d;}
+        // convert to polar coordinates
+        float theta = acos(z.z / r);
+        float phi = atan(z.y, z.x);
 
-        p = SCALE * p - c * (SCALE - 1.0);
-        counter++;
+        dr =  pow( r, mandelbulb_power-1.0)*mandelbulb_power*dr + 1.0;
+
+        // scale and rotate the point
+        float zr = pow( r,mandelbulb_power);
+        theta = theta*mandelbulb_power;
+        phi = phi*mandelbulb_power;
+
+        // convert back to cartesian coordinates
+        z = zr*vec3(sin(theta)*cos(phi), sin(phi)*sin(theta), cos(theta));
+        z+=pos;
     }
-
-    return length(p) * pow(SCALE, float(-counter));
+    return 0.5*log(r)*r/dr;
 }
 
 float sd_sphere(vec3 p, vec3 c, float s )
@@ -58,53 +50,45 @@ float sd_sphere(vec3 p, vec3 c, float s )
     return length(p-c) - s;
 }
 
-float find_closest(vec3 p)
+float scene_sdf(vec3 p)
 {
-    return sd_mandelbulb(p);
+    return mandelbulb_sdf(p);
 }
 
-vec3 get_normal(in vec3 p)
+vec3 estimate_normal(const vec3 p, const float delta)
 {
-    const vec3 small_step = vec3(0.001, 0.0, 0.0);
-
-    float gradient_x = find_closest(p + small_step.xyy) - find_closest(p - small_step.xyy);
-    float gradient_y = find_closest(p + small_step.yxy) - find_closest(p - small_step.yxy);
-    float gradient_z = find_closest(p + small_step.yyx) - find_closest(p - small_step.yyx);
-
-    vec3 normal = vec3(gradient_x, gradient_y, gradient_z);
-
-    return normalize(normal);
+    return normalize(vec3(
+    scene_sdf(vec3(p.x + delta, p.y, p.z)) - scene_sdf(vec3(p.x - delta, p.y, p.z)),
+    scene_sdf(vec3(p.x, p.y + delta, p.z)) - scene_sdf(vec3(p.x, p.y - delta, p.z)),
+    scene_sdf(vec3(p.x, p.y, p.z  + delta)) - scene_sdf(vec3(p.x, p.y, p.z - delta))
+    ));
 }
 
-vec3 ray_march(in vec3 ro, in vec3 rd, vec3 bg_color)
+float contrast(float val, float contrast_offset, float contrast_mid_level)
 {
-    float total_distance_traveled = 0.0;
-    const int NUMBER_OF_STEPS = 255;
-    const float MINIMUM_HIT_DISTANCE = 0.0001;
-    const float MAXIMUM_TRACE_DISTANCE = 10000.0;
+    return clamp((val - contrast_mid_level) * (1. + contrast_offset) + contrast_mid_level, 0., 1.);
+}
 
-    const float global_lighting = 0.2f;
+vec3 ray_march(in vec3 ro, in vec3 rd, out int steps, out float depth)
+{
+    const float view_radius = 10.0f;
+    const int maxSteps = 64;
+    depth = 0.;
+    steps = 0;
+    float dist;
+    vec3 intersection_point;
 
-    for (int i = 0; i < NUMBER_OF_STEPS; i++) {
-        vec3 current_position = ro + total_distance_traveled * rd;
-        float distance_to_closest = find_closest(current_position);
-
-        if(distance_to_closest < MINIMUM_HIT_DISTANCE)
-        {
-            vec3 normal = get_normal(current_position);
-            vec3 light_pos = vec3 (2,-5,3);
-            float diff = max(dot(normalize(current_position - light_pos),normal), global_lighting);
-
-            return vec3(0.2, 1.0, 0.0) * diff + bg_color * global_lighting;
-        }
-
-        if(total_distance_traveled > MAXIMUM_TRACE_DISTANCE)
-        {
-            break;
-        }
-        total_distance_traveled += distance_to_closest;
+    do{
+        intersection_point = ro + depth * rd;
+        dist = scene_sdf(intersection_point);
+        depth += dist;
+        steps++;
+    }while(depth < view_radius && dist > epsilon && steps < maxSteps);
+    if(depth > view_radius)
+    {
+        return vec3(0.0);
     }
-    return vec3(bg_color);
+    return intersection_point;
 }
 
 
@@ -113,10 +97,31 @@ void main()
 {
     vec2 uv = (gl_FragCoord.xy - .5 * iResolution) / iResolution.y;
 
-    vec3 ro = vec3(0.0, 0.0, -5.0);
-    vec3 rd = normalize(vec3(uv, 1.0));
 
-    vec3 result = ray_march(ro, rd, vec3(0));
 
-    out_color = vec4(result,1);
+    vec3 rd = normalize(vec3(uv * tan(radians(35)), 1.0));
+
+    float angle = radians(360) * iTime * 1.0/36.0;
+
+    mat3 cam_basis = mat3(0, cos(angle), sin(angle),
+    -1, 0, 0,
+    0, -sin(angle), cos(angle));
+
+    rd = cam_basis * rd;
+
+    vec3 ro = -cam_basis[2]*4;
+    int steps = 0;
+    float depth = 0.;
+    vec3 current_position = ray_march(ro + epsilon * rd, rd, steps, depth);
+
+    vec3 normal = estimate_normal(current_position, epsilon);
+
+    float ao = steps * 0.01;
+    ao = 1. - ao / (ao + 0.5);
+
+    const float contrast_offset = 0.3;
+    const float contrast_mid_level = 0.5;
+    ao = contrast(ao, contrast_offset, contrast_mid_level);
+
+    out_color = vec4(ao * vec3(normal * 0.5 + 0.5),1.0);
 }
