@@ -37,7 +37,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    window = glfwCreateWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"Ray Tracer", nullptr, nullptr);
+    window = glfwCreateWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"Ray Marcher", nullptr, nullptr);
 
     if(window == nullptr)
     {
