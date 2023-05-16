@@ -6,6 +6,9 @@ uniform float iDeltaTime;
 //uniform dvec2 offset;
 //uniform double scale;
 
+//USER SETTINGS
+uniform float camDist;
+
 out vec4 out_color;
 const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
@@ -14,7 +17,6 @@ float mandelbulb_power = 8.;
 const int mandelbulb_iter_num = 10;
 const float view_radius = 10.0f;
 const int maxSteps = 512;
-float camDist = 3.0;
 
 vec3 sq3 (vec3 v) {
     return vec3(

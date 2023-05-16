@@ -21,7 +21,7 @@ int WINDOW_WIDTH = 800;
 int WINDOW_HEIGHT = 800;
 
 float deltatime = 0.0f;
-
+float camDist = 3.0f;
 
 void draw_gui();
 
@@ -114,6 +114,8 @@ int main() {
         shader.set_float2f("iResolution", WINDOW_WIDTH, WINDOW_HEIGHT);
         shader.set_float("iTime", glfwGetTime());
         shader.set_float("iDeltaTime", deltatime);
+        shader.set_float("camDist", camDist);
+
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
@@ -137,6 +139,25 @@ void draw_gui() {
     ImGui::Begin("AAHHHH", nullptr, flags);
 
 
+    if(ImGui::CollapsingHeader("Camera"))
+    {
+        ImGui::SliderFloat("Camera Distance", &camDist, 0, 10);
+    }
+
+    if(ImGui::CollapsingHeader("Rendering"))
+    {
+
+    }
+
+    if(ImGui::CollapsingHeader("Mandelbulb"))
+    {
+
+    }
+
+    if(ImGui::CollapsingHeader("Julia Set"))
+    {
+
+    }
 
     ImGui::End();
     ImGui::Render();
