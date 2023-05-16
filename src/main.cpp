@@ -4,6 +4,11 @@
 #include "GLFW/glfw3.h"
 #include "shader_program.h"
 
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
+#include "imgui_stdlib.h"
+
 static void glfwError(int id, const char* description)
 {
     std::cerr << description << std::endl;
@@ -18,12 +23,14 @@ int WINDOW_HEIGHT = 800;
 float deltatime = 0.0f;
 
 
+void draw_gui();
+
 static void framebuffer_size_callback(GLFWwindow* _window, int width, int height)
 {
     WINDOW_WIDTH = width;
     WINDOW_HEIGHT = height;
 
-    glViewport(0, 0, width, height);
+    glViewport(width-height, 0, height, height);
 }
 
 
@@ -84,10 +91,14 @@ int main() {
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 2 * sizeof (float), (void*) nullptr);
     glEnableVertexAttribArray(0);
 
-
-
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    ImGui::CreateContext();
+    if(!ImGui_ImplGlfw_InitForOpenGL(window, true)) return -1;
+    if(!ImGui_ImplOpenGL3_Init()) return -1;
+
+    ImGuiIO& io = ImGui::GetIO(); (void) io;
 
     while(!glfwWindowShouldClose(window))
     {
@@ -100,16 +111,35 @@ int main() {
         glBindVertexArray(vao);
 
         shader.use();
-
         shader.set_float2f("iResolution", WINDOW_WIDTH, WINDOW_HEIGHT);
         shader.set_float("iTime", glfwGetTime());
         shader.set_float("iDeltaTime", deltatime);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
+
+        draw_gui();
+
         glfwSwapBuffers(window);
     }
 
     return 0;
+}
+
+void draw_gui() {
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+
+    ImGui::SetNextWindowSize(ImVec2(WINDOW_WIDTH-WINDOW_HEIGHT, WINDOW_HEIGHT));
+    ImGui::SetNextWindowPos(ImVec2(0,0));
+    int flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
+    ImGui::Begin("AAHHHH", nullptr, flags);
+
+
+
+    ImGui::End();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 

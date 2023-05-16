@@ -11,17 +11,34 @@ const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
 const float contrast_mid_level = 0.5;
 float mandelbulb_power = 8.;
-const int mandelbulb_iter_num = 15;
-const float view_radius = 100.0f;
-const int maxSteps = 256;
-float camDist = 5.0f;
+const int mandelbulb_iter_num = 10;
+const float view_radius = 10.0f;
+const int maxSteps = 512;
+float camDist = 3.0;
+
+vec3 sq3 (vec3 v) {
+    return vec3(
+    v.x*v.x-v.y*v.y-v.z*v.z,
+    2.*v.x*v.y,
+    2.*v.x*v.z
+    );
+}
 
 float smin(float a, float b, float k) {
     float h = clamp(0.5 + 0.5*(a-b)/k, 0.0, 1.0);
     return mix(a, b, h) - k*h*(1.0-h);
 }
 
-
+float julia_sdf(vec3 p, vec3 c)
+{
+    vec3 k = p;
+    for(int i = 0; i < mandelbulb_iter_num; i++)
+    {
+        k = sq3(k) + c;
+        if(length(k) > 10.) return 1.-pow((float(i)/float(mandelbulb_iter_num)),3);
+    }
+    return -.01;
+}
 float mandelbulb_sdf(vec3 pos) {
     vec3 z = pos;
     float dr = 1.0;
@@ -49,7 +66,7 @@ float mandelbulb_sdf(vec3 pos) {
     return 0.5*log(r)*r/dr;
 }
 
-float sd_sphere(vec3 p, vec3 c, float s )
+float sphere_sdf(vec3 p, vec3 c, float s )
 {
 
     return length(p-c) - s;
@@ -58,6 +75,7 @@ float sd_sphere(vec3 p, vec3 c, float s )
 float scene_sdf(vec3 p)
 {
     return mandelbulb_sdf(p);
+    //return julia_sdf(p, vec3(sin(iTime*0.3)*0.7, cos(iTime*0.4)*0.7, 0.1));
 }
 
 vec3 estimate_normal(const vec3 p, const float delta)
@@ -80,18 +98,21 @@ vec3 ray_march(in vec3 ro, in vec3 rd, out int steps, out float depth)
     depth = 0.;
     steps = 0;
     float dist;
+    float t;
     vec3 intersection_point;
 
     do{
         intersection_point = ro + depth * rd;
         dist = scene_sdf(intersection_point);
-        depth += 0.5 * dist;
+        depth += dist * 0.5;
         steps++;
     }while(depth < view_radius && dist > epsilon && steps < maxSteps);
+
     if(depth > view_radius)
     {
-        return vec3(0);
+        return vec3(0.0);
     }
+
     return intersection_point;
 }
 
@@ -99,9 +120,9 @@ vec3 ray_march(in vec3 ro, in vec3 rd, out int steps, out float depth)
 
 void main()
 {
-    vec2 uv = (gl_FragCoord.xy - .5 * iResolution) / iResolution.y;
+    vec2 uv = (gl_FragCoord.xy - vec2(iResolution.x-iResolution.y, 0) - .5 * iResolution.yy) / iResolution.y;
     vec3 rd = normalize(vec3(uv, 1));
-    float angle = radians(360.) * iTime * 1.0/36.0;
+    float angle = radians(iTime);
     rd.xz *= mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
 
     vec3 ro = vec3 (camDist * sin(angle),0.0,-camDist *cos(angle));
@@ -113,10 +134,11 @@ void main()
         out_color = vec4(0,0,0,1);
         return;
     }
+    float frac = depth/view_radius;
     vec3 normal = estimate_normal(current_position, epsilon);
     float ao = steps * 0.01;
     ao = 1. - ao / (ao + 0.5);
-
+    vec3 base_color = vec3(1.0,1.0,1.0);
     ao = contrast(ao, contrast_offset, contrast_mid_level);
-    out_color = vec4(ao * vec3(normal * 0.5 + 0.5),1.0);
+    out_color = vec4(ao * (normal * 0.5 +0.5),1.0);
 }
