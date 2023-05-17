@@ -11,6 +11,8 @@ uniform float camDist;
 uniform float mandelbulb_power = 8.;
 uniform vec4 julia_zero;
 uniform float julia_imaginary;
+uniform int current;
+uniform float angle;
 
 
 out vec4 out_color;
@@ -39,19 +41,19 @@ float smin(float a, float b, float k) {
 // "Hypercomplex" by Alexander Alekseev aka TDM - 2014
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
 float julia_sdf(vec3 p,vec4 q) {
-    vec4 nz, z = vec4(p,julia_imaginary);
-    float z2 = dot(p,p), md2 = 1.0;
-    for(int i = 0; i < mandelbulb_iter_num; i++) {
-        md2 *= 4.0*z2;
-        nz.x = z.x*z.x-dot(z.yzw,z.yzw);
-        nz.y = 2.0*(z.x*z.y + z.w*z.z);
-        nz.z = 2.0*(z.x*z.z + z.w*z.y);
-        nz.w = 2.0*(z.x*z.w - z.y*z.z);
+    vec4 nz, z = vec4(p, julia_imaginary);
+    float z2 = dot(p, p), md2 = 1.0;
+    for (int i = 0; i < mandelbulb_iter_num; i++) {
+        md2 *= 4.0 * z2;
+        nz.x = z.x * z.x - dot(z.yzw, z.yzw);
+        nz.y = 2.0 * (z.x * z.y + z.w * z.z);
+        nz.z = 2.0 * (z.x * z.z + z.w * z.y);
+        nz.w = 2.0 * (z.x * z.w - z.y * z.z);
         z = nz + q;
-        z2 = dot(z,z);
-        if(z2 > 4.0) break;
+        z2 = dot(z, z);
+        if (z2 > 4.0) break;
     }
-    return 0.25*sqrt(z2/md2)*log(z2);
+    return 0.25 * sqrt(z2 / md2) * log(z2);
 }
 
 //Source: http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/
@@ -90,8 +92,15 @@ float sphere_sdf(vec3 p, vec3 c, float s )
 
 float scene_sdf(vec3 p)
 {
-    //return mandelbulb_sdf(p);
-    return julia_sdf(p, julia_zero);
+    if(current == 0)
+    {
+        return mandelbulb_sdf(p);
+    }
+
+    if (current == 1)
+    {
+        return julia_sdf(p, julia_zero);
+    }
 }
 
 vec3 estimate_normal(const vec3 p, const float delta)
@@ -138,10 +147,10 @@ void main()
 {
     vec2 uv = (gl_FragCoord.xy - vec2(iResolution.x-iResolution.y, 0) - .5 * iResolution.yy) / iResolution.y;
     vec3 rd = normalize(vec3(uv, 1));
-    float angle = radians(iTime);
-    rd.xz *= mat2(cos(angle), -sin(angle), sin(angle), cos(angle));
+    float a = radians(angle);
+    rd.xz *= mat2(cos(a), -sin(a), sin(a), cos(a));
 
-    vec3 ro = vec3 (camDist * sin(angle),0.0,-camDist *cos(angle));
+    vec3 ro = vec3 (camDist * sin(a),0.0,-camDist *cos(a));
     int steps = 0;
     float depth = 0.;
     vec3 current_position = ray_march(ro + epsilon * rd, rd, steps, depth);

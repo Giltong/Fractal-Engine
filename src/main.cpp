@@ -1,5 +1,6 @@
 #include <iostream>
 #include <chrono>
+#include <vector>
 #include "glad/glad.h"
 #include "GLFW/glfw3.h"
 #include "shader_program.h"
@@ -25,6 +26,11 @@ float cam_dist = 3.0f;
 float mandelbulb_power = 8.0f;
 float julia_zero[] = {0,0,0,0};
 float julia_imaginary = 0.0;
+float rotation_speed = 0.0f;
+float angle = 0.0f;
+
+int current = 0;
+std::vector<std::string> options = {"Mandelbulb", "Julia Set"};
 
 void draw_gui();
 
@@ -113,6 +119,16 @@ int main() {
         glClear(GL_COLOR_BUFFER_BIT);
         glBindVertexArray(vao);
 
+        angle += rotation_speed * deltatime;
+        if(angle > 360)
+        {
+            angle -= 360;
+        }
+        if(angle < 0)
+        {
+            angle += 360;
+        }
+
         shader.use();
         shader.set_float2f("iResolution", WINDOW_WIDTH, WINDOW_HEIGHT);
         shader.set_float("iTime", glfwGetTime());
@@ -121,6 +137,8 @@ int main() {
         shader.set_float4f("julia_zero", julia_zero[0], julia_zero[1], julia_zero[2], julia_zero[3]);
         shader.set_float("mandelbulb_power", mandelbulb_power);
         shader.set_float("julia_imaginary", julia_imaginary);
+        shader.set_int("current", current);
+        shader.set_float("angle", angle);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -144,15 +162,32 @@ void draw_gui() {
     int flags = ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar;
     ImGui::Begin("AAHHHH", nullptr, flags);
 
-
     if(ImGui::CollapsingHeader("Camera"))
     {
         ImGui::SliderFloat("Camera Distance", &cam_dist, 0, 10);
+        ImGui::SliderFloat("Angle", &angle, 0, 360);
+        ImGui::SliderFloat("Rotation Speed", &rotation_speed, -10, 10);
+        if(ImGui::Button("Stop"))
+        {
+            rotation_speed = 0.;
+        }
     }
 
     if(ImGui::CollapsingHeader("Rendering"))
     {
-
+        if(ImGui::BeginCombo("Current", options[current].c_str()))
+        {
+            for(int i = 0; i < options.size(); i++)
+            {
+                const bool is_selected = (current == i);
+                if(ImGui::Selectable(options.at(i).c_str(), is_selected))
+                {
+                    current = i;
+                    std::cout << current << std::endl;
+                }
+            }
+            ImGui::EndCombo();
+        }
     }
 
     if(ImGui::CollapsingHeader("Mandelbulb"))
