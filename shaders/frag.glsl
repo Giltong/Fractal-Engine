@@ -8,15 +8,19 @@ uniform float iDeltaTime;
 
 //USER SETTINGS
 uniform float camDist;
+uniform float mandelbulb_power = 8.;
+uniform vec4 julia_zero;
+uniform float julia_imaginary;
+
 
 out vec4 out_color;
 const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
 const float contrast_mid_level = 0.5;
-float mandelbulb_power = 8.;
-const int mandelbulb_iter_num = 10;
-const float view_radius = 10.0f;
-const int maxSteps = 512;
+
+const int mandelbulb_iter_num = 16;
+const float view_radius = 20.0f;
+const int maxSteps = 256;
 
 vec3 sq3 (vec3 v) {
     return vec3(
@@ -31,16 +35,26 @@ float smin(float a, float b, float k) {
     return mix(a, b, h) - k*h*(1.0-h);
 }
 
-float julia_sdf(vec3 p, vec3 c)
-{
-    vec3 k = p;
-    for(int i = 0; i < mandelbulb_iter_num; i++)
-    {
-        k = sq3(k) + c;
-        if(length(k) > 10.) return 1.-pow((float(i)/float(mandelbulb_iter_num)),3);
+
+// "Hypercomplex" by Alexander Alekseev aka TDM - 2014
+// License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License.
+float julia_sdf(vec3 p,vec4 q) {
+    vec4 nz, z = vec4(p,julia_imaginary);
+    float z2 = dot(p,p), md2 = 1.0;
+    for(int i = 0; i < mandelbulb_iter_num; i++) {
+        md2 *= 4.0*z2;
+        nz.x = z.x*z.x-dot(z.yzw,z.yzw);
+        nz.y = 2.0*(z.x*z.y + z.w*z.z);
+        nz.z = 2.0*(z.x*z.z + z.w*z.y);
+        nz.w = 2.0*(z.x*z.w - z.y*z.z);
+        z = nz + q;
+        z2 = dot(z,z);
+        if(z2 > 4.0) break;
     }
-    return -.01;
+    return 0.25*sqrt(z2/md2)*log(z2);
 }
+
+//Source: http://blog.hvidtfeldts.net/index.php/2011/09/distance-estimated-3d-fractals-v-the-mandelbulb-different-de-approximations/
 float mandelbulb_sdf(vec3 pos) {
     vec3 z = pos;
     float dr = 1.0;
@@ -76,8 +90,8 @@ float sphere_sdf(vec3 p, vec3 c, float s )
 
 float scene_sdf(vec3 p)
 {
-    return mandelbulb_sdf(p);
-    //return julia_sdf(p, vec3(sin(iTime*0.3)*0.7, cos(iTime*0.4)*0.7, 0.1));
+    //return mandelbulb_sdf(p);
+    return julia_sdf(p, julia_zero);
 }
 
 vec3 estimate_normal(const vec3 p, const float delta)

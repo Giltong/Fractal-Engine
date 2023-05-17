@@ -19,6 +19,7 @@ public:
     bool linked();
 
     void set_float2f(const std::string& name, float val1, float val2);
+    void set_float4f(const std::string& name, float val1, float val2, float val3, float val4);
     void set_float(const std::string& name, float val);
     void set_double(const std::string& name, double val);
     void set_double2d(const std::string& name, double val1, double val2);

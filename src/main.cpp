@@ -21,7 +21,10 @@ int WINDOW_WIDTH = 800;
 int WINDOW_HEIGHT = 800;
 
 float deltatime = 0.0f;
-float camDist = 3.0f;
+float cam_dist = 3.0f;
+float mandelbulb_power = 8.0f;
+float julia_zero[] = {0,0,0,0};
+float julia_imaginary = 0.0;
 
 void draw_gui();
 
@@ -114,7 +117,10 @@ int main() {
         shader.set_float2f("iResolution", WINDOW_WIDTH, WINDOW_HEIGHT);
         shader.set_float("iTime", glfwGetTime());
         shader.set_float("iDeltaTime", deltatime);
-        shader.set_float("camDist", camDist);
+        shader.set_float("camDist", cam_dist);
+        shader.set_float4f("julia_zero", julia_zero[0], julia_zero[1], julia_zero[2], julia_zero[3]);
+        shader.set_float("mandelbulb_power", mandelbulb_power);
+        shader.set_float("julia_imaginary", julia_imaginary);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -141,7 +147,7 @@ void draw_gui() {
 
     if(ImGui::CollapsingHeader("Camera"))
     {
-        ImGui::SliderFloat("Camera Distance", &camDist, 0, 10);
+        ImGui::SliderFloat("Camera Distance", &cam_dist, 0, 10);
     }
 
     if(ImGui::CollapsingHeader("Rendering"))
@@ -151,12 +157,13 @@ void draw_gui() {
 
     if(ImGui::CollapsingHeader("Mandelbulb"))
     {
-
+        ImGui::SliderFloat("Power", &mandelbulb_power, 1, 16);
     }
 
     if(ImGui::CollapsingHeader("Julia Set"))
     {
-
+        ImGui::SliderFloat4("Julia C Value", julia_zero, -1, 1);
+        ImGui::SliderFloat("Julia Imaginary Part", &julia_imaginary, -1, 1);
     }
 
     ImGui::End();

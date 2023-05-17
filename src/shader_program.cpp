@@ -89,3 +89,7 @@ void shader_program::set_double(const std::string &name, double val) {
 void shader_program::set_double2d(const std::string &name, double val1, double val2) {
     glUniform2d(glGetUniformLocation(m_id, name.c_str()), val1, val2);
 }
+
+void shader_program::set_float4f(const std::string &name, float val1, float val2, float val3, float val4) {
+    glUniform4f(glGetUniformLocation(m_id, name.c_str()), val1, val2, val3, val4);
+}
