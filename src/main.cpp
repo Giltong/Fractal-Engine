@@ -18,8 +18,8 @@ static void glfwError(int id, const char* description)
 
 
 GLFWwindow* window;
-int WINDOW_WIDTH = 800;
-int WINDOW_HEIGHT = 800;
+int WINDOW_WIDTH = 640;
+int WINDOW_HEIGHT = 480;
 
 float deltatime = 0.0f;
 float cam_dist = 3.0f;
@@ -187,7 +187,6 @@ void draw_gui() {
                 if(ImGui::Selectable(options.at(i).c_str(), is_selected))
                 {
                     current = i;
-                    std::cout << current << std::endl;
                 }
             }
             ImGui::EndCombo();
