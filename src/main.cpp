@@ -28,6 +28,8 @@ float julia_zero[] = {0,0,0,0};
 float julia_imaginary = 0.0;
 float rotation_speed = 0.0f;
 float angle = 0.0f;
+int max_steps = 256;
+int iteration_number = 16;
 
 int current = 0;
 std::vector<std::string> options = {"Mandelbulb", "Julia Set"};
@@ -139,6 +141,8 @@ int main() {
         shader.set_float("julia_imaginary", julia_imaginary);
         shader.set_int("current", current);
         shader.set_float("angle", angle);
+        shader.set_int("maxSteps", max_steps);
+        shader.set_int("mandelbulb_iter_num", iteration_number);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -188,6 +192,9 @@ void draw_gui() {
             }
             ImGui::EndCombo();
         }
+
+        ImGui::SliderInt("Iteration Count", &iteration_number, 0, 32);
+        ImGui::SliderInt("Max Steps", &max_steps, 0, 512);
     }
 
     if(ImGui::CollapsingHeader("Mandelbulb"))

@@ -13,16 +13,17 @@ uniform vec4 julia_zero;
 uniform float julia_imaginary;
 uniform int current;
 uniform float angle;
-
+uniform int maxSteps = 256;
+uniform  int mandelbulb_iter_num = 16;
 
 out vec4 out_color;
 const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
 const float contrast_mid_level = 0.5;
 
-const int mandelbulb_iter_num = 16;
+
 const float view_radius = 20.0f;
-const int maxSteps = 256;
+
 
 vec3 sq3 (vec3 v) {
     return vec3(
