@@ -33,6 +33,10 @@ int iteration_number = 16;
 
 int current = 0;
 std::vector<std::string> options = {"Mandelbulb", "Julia Set"};
+int current_color_option = 0;
+std::vector<std::string> color_options = {"Normals", "Solid"};
+bool ambient_occlusion = true;
+float fractal_color[3];
 
 void draw_gui();
 
@@ -73,7 +77,7 @@ int main() {
     }
 
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-
+    glfwSetWindowAspectRatio(window, 20, 10);
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     //glEnable(GL_MULTISAMPLE);
     shader_program shader;
@@ -143,6 +147,10 @@ int main() {
         shader.set_float("angle", angle);
         shader.set_int("maxSteps", max_steps);
         shader.set_int("mandelbulb_iter_num", iteration_number);
+        int amb_val = ambient_occlusion ? 1 : 0;
+        shader.set_int("ambient_occlusion", amb_val);
+        shader.set_int("current_color_settings", current_color_option);
+        shader.set_float3f("cur_color",fractal_color[0], fractal_color[1], fractal_color[2]);
 
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -194,6 +202,22 @@ void draw_gui() {
 
         ImGui::SliderInt("Iteration Count", &iteration_number, 0, 32);
         ImGui::SliderInt("Max Steps", &max_steps, 0, 512);
+
+        if(ImGui::BeginCombo("Coloring", color_options[current_color_option].c_str())) {
+            for (int i = 0; i < color_options.size(); i++) {
+                const bool is_selected = (current_color_option == i);
+                if (ImGui::Selectable(color_options.at(i).c_str(), is_selected)) {
+                    current_color_option = i;
+                }
+            }
+            ImGui::EndCombo()
+            ;
+        }
+        if(current_color_option == 1)
+        {
+            ImGui::ColorPicker3("Color", fractal_color);
+        }
+        ImGui::Checkbox("Ambient Occlusion", &ambient_occlusion);
     }
 
     if(ImGui::CollapsingHeader("Mandelbulb"))

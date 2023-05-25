@@ -20,6 +20,7 @@ public:
 
     void set_float2f(const std::string& name, float val1, float val2);
     void set_float4f(const std::string& name, float val1, float val2, float val3, float val4);
+    void set_float3f(const std::string& name, float val1, float val2, float val3);
     void set_float(const std::string& name, float val);
     void set_double(const std::string& name, double val);
     void set_int(const std::string& name, int val);

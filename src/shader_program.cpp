@@ -97,3 +97,7 @@ void shader_program::set_float4f(const std::string &name, float val1, float val2
 void shader_program::set_int(const std::string &name, int val) {
     glUniform1i(glGetUniformLocation(m_id, name.c_str()), val);
 }
+
+void shader_program::set_float3f(const std::string &name, float val1, float val2, float val3) {
+    glUniform3f(glGetUniformLocation(m_id, name.c_str()), val1, val2, val3);
+}

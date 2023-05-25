@@ -16,6 +16,10 @@ uniform float angle;
 uniform int maxSteps = 256;
 uniform  int mandelbulb_iter_num = 16;
 
+uniform int current_color_settings;
+uniform int ambient_occlusion;
+uniform vec3 cur_color;
+
 out vec4 out_color;
 const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
@@ -45,11 +49,13 @@ float julia_sdf(vec3 p,vec4 q) {
     vec4 nz, z = vec4(p, julia_imaginary);
     float z2 = dot(p, p), md2 = 1.0;
     for (int i = 0; i < mandelbulb_iter_num; i++) {
+
         md2 *= 4.0 * z2;
         nz.x = z.x * z.x - dot(z.yzw, z.yzw);
         nz.y = 2.0 * (z.x * z.y + z.w * z.z);
         nz.z = 2.0 * (z.x * z.z + z.w * z.y);
         nz.w = 2.0 * (z.x * z.w - z.y * z.z);
+
         z = nz + q;
         z2 = dot(z, z);
         if (z2 > 4.0) break;
@@ -164,7 +170,21 @@ void main()
     vec3 normal = estimate_normal(current_position, epsilon);
     float ao = steps * 0.01;
     ao = 1. - ao / (ao + 0.5);
-    vec3 base_color = vec3(1.0,1.0,1.0);
     ao = contrast(ao, contrast_offset, contrast_mid_level);
-    out_color = vec4(ao * (normal * 0.5 +0.5),1.0);
+    vec3 output_color;
+    if(current_color_settings == 0)
+    {
+        output_color = normal * 0.5 + 0.5;
+    }
+    else
+    {
+        output_color = cur_color;
+    }
+
+    if(ambient_occlusion == 1)
+    {
+        output_color *= ao;
+    }
+
+    out_color = vec4(output_color,1.0);
 }
