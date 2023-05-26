@@ -13,7 +13,7 @@ set(IMGUI_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/libs/imgui")
 
 set(IMPLOT_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/libs/implot")
 
-set(CMAKE_EXE_LINKER_FLAGS -static)
+set(CMAKE_EXE_LINKER_FLAGS "-static -mwindows")
 
 add_library(IMGUI STATIC)
 

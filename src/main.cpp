@@ -87,8 +87,8 @@ int main() {
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     //glEnable(GL_MULTISAMPLE);
     shader_program shader;
-    shader.add("/shaders/vert.glsl", shader_type::vertex);
-    shader.add("/shaders/frag.glsl", shader_type::fragment);
+    shader.add("shaders/vert.glsl", shader_type::vertex);
+    shader.add("shaders/frag.glsl", shader_type::fragment);
     shader.bind();
 
     if(!shader.linked())
