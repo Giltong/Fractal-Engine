@@ -65,7 +65,7 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
-    window = glfwCreateWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"Ray Marcher", nullptr, nullptr);
+    window = glfwCreateWindow(WINDOW_WIDTH,WINDOW_HEIGHT,"Fractal Renderer", nullptr, nullptr);
 
     if(window == nullptr)
     {
@@ -87,8 +87,8 @@ int main() {
     glViewport(0,0,WINDOW_WIDTH,WINDOW_HEIGHT);
     //glEnable(GL_MULTISAMPLE);
     shader_program shader;
-    shader.add("../shaders/vert.glsl", shader_type::vertex);
-    shader.add("../shaders/frag.glsl", shader_type::fragment);
+    shader.add("/shaders/vert.glsl", shader_type::vertex);
+    shader.add("/shaders/frag.glsl", shader_type::fragment);
     shader.bind();
 
     if(!shader.linked())
@@ -120,7 +120,7 @@ int main() {
     if(!ImGui_ImplOpenGL3_Init()) return -1;
 
     ImGuiIO& io = ImGui::GetIO(); (void) io;
-    io.Fonts->AddFontFromFileTTF("DroidSans.ttf", 16);
+    io.Fonts->AddFontFromFileTTF("fonts/DroidSans.ttf", 16);
     setup_imgui_style();
 
     while(!glfwWindowShouldClose(window))

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.23)
-project(raytracer)
+project(FractalRenderer)
 
 set(CMAKE_CXX_STANDARD 20)
 
@@ -12,6 +12,8 @@ set(GLM_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/libs/glm")
 set(IMGUI_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/libs/imgui")
 
 set(IMPLOT_INCLUDE_PATH "${CMAKE_SOURCE_DIR}/libs/implot")
+
+set(CMAKE_EXE_LINKER_FLAGS -static)
 
 add_library(IMGUI STATIC)
 
@@ -49,6 +51,6 @@ include_directories(
 
 link_directories(${PROJECT_SOURCE_DIR}/glfw/lib-mingw-w64)
 
-add_executable(raytracer src/main.cpp glad.c src/shader_program.cpp src/shader_program.h src/imgui_style.hpp)
+add_executable(FractalRenderer src/main.cpp glad.c src/shader_program.cpp src/shader_program.h src/imgui_style.hpp)
 
-target_link_libraries(raytracer mingw32 ${PROJECT_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a opengl32 IMGUI -mwindows)
+target_link_libraries(FractalRenderer mingw32 ${PROJECT_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a opengl32 IMGUI)
