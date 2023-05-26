@@ -51,4 +51,4 @@ link_directories(${PROJECT_SOURCE_DIR}/glfw/lib-mingw-w64)
 
 add_executable(raytracer src/main.cpp glad.c src/shader_program.cpp src/shader_program.h src/imgui_style.hpp)
 
-target_link_libraries(raytracer mingw32 ${PROJECT_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a opengl32 IMGUI)
+target_link_libraries(raytracer mingw32 ${PROJECT_SOURCE_DIR}/libs/glfw/lib-mingw-w64/libglfw3.a opengl32 IMGUI -mwindows)
