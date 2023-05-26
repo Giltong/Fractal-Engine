@@ -20,6 +20,10 @@ uniform int current_color_settings;
 uniform int ambient_occlusion;
 uniform vec3 cur_color;
 
+uniform float smooth_coeff;
+uniform vec3 center;
+uniform float radius;
+
 out vec4 out_color;
 const float epsilon = 0.002f;
 const float contrast_offset = 0.3;
@@ -107,6 +111,11 @@ float scene_sdf(vec3 p)
     if (current == 1)
     {
         return julia_sdf(p, julia_zero);
+    }
+
+    if(current == 2)
+    {
+         return smin(sphere_sdf(p, center, radius), sphere_sdf(p, vec3(0,0,0), 1), smooth_coeff);
     }
 }
 

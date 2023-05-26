@@ -10,6 +10,8 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_stdlib.h"
 
+#include "imgui_style.hpp"
+
 static void glfwError(int id, const char* description)
 {
     std::cerr << description << std::endl;
@@ -32,11 +34,15 @@ int max_steps = 256;
 int iteration_number = 16;
 
 int current = 0;
-std::vector<std::string> options = {"Mandelbulb", "Julia Set"};
+std::vector<std::string> options = {"Mandelbulb", "Julia Set", "Ray Marching Demo"};
 int current_color_option = 0;
 std::vector<std::string> color_options = {"Normals", "Solid"};
 bool ambient_occlusion = true;
 float fractal_color[3];
+
+float radius = 1.0f;
+float smooth_coeff = 1.0f;
+float center[3];
 
 void draw_gui();
 
@@ -114,6 +120,8 @@ int main() {
     if(!ImGui_ImplOpenGL3_Init()) return -1;
 
     ImGuiIO& io = ImGui::GetIO(); (void) io;
+    io.Fonts->AddFontFromFileTTF("DroidSans.ttf", 16);
+    setup_imgui_style();
 
     while(!glfwWindowShouldClose(window))
     {
@@ -151,7 +159,9 @@ int main() {
         shader.set_int("ambient_occlusion", amb_val);
         shader.set_int("current_color_settings", current_color_option);
         shader.set_float3f("cur_color",fractal_color[0], fractal_color[1], fractal_color[2]);
-
+        shader.set_float3f("center",center[0], center[1], center[2]);
+        shader.set_float("radius", radius);
+        shader.set_float("smooth_coeff", smooth_coeff);
         glBindBuffer(GL_ARRAY_BUFFER, vbo);
         glDrawArrays(GL_TRIANGLES, 0, 6);
         glBindVertexArray(0);
@@ -210,8 +220,7 @@ void draw_gui() {
                     current_color_option = i;
                 }
             }
-            ImGui::EndCombo()
-            ;
+            ImGui::EndCombo();
         }
         if(current_color_option == 1)
         {
@@ -220,15 +229,23 @@ void draw_gui() {
         ImGui::Checkbox("Ambient Occlusion", &ambient_occlusion);
     }
 
-    if(ImGui::CollapsingHeader("Mandelbulb"))
+    if(current == 0 && ImGui::CollapsingHeader("Mandelbulb"))
     {
         ImGui::SliderFloat("Power", &mandelbulb_power, 1, 16);
     }
 
-    if(ImGui::CollapsingHeader("Julia Set"))
+    if(current == 1 && ImGui::CollapsingHeader("Julia Set"))
     {
         ImGui::SliderFloat4("Julia C Value", julia_zero, -1, 1);
         ImGui::SliderFloat("Julia Imaginary Part", &julia_imaginary, -1, 1);
+    }
+
+    if(current == 2 && ImGui::CollapsingHeader("Ray Marching Demo"))
+    {
+        ImGui::TextWrapped("This is using a smooth minimum function to compare the two sphere's distance functions and creates a blend between the two.");
+        ImGui::SliderFloat3("Center", center, -2.0, 2.0);
+        ImGui::SliderFloat("Radius", &radius, 0, 5.0);
+        ImGui::SliderFloat("Smoothness Coefficient", &smooth_coeff, 0, 2);
     }
 
     ImGui::End();
