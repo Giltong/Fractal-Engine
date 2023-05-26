@@ -1,6 +1,6 @@
-# fractal-engine
+# fractal-renderer
 idk what im doing.
-rn its similar to shaderlab with its stuff but im wanting to do more with it in the future
+supports mandelbulbs and 4d julia sets
 
 sources:
 
