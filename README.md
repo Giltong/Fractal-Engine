@@ -1,6 +1,6 @@
-# fractal-renderer
-idk what im doing.
-supports mandelbulbs and 4d julia sets
+# Fractal Renderer
+Visualizes 3d fractals using ray-marching.
+Supports mandelbulbs and 4d julia sets
 
 sources:
 
